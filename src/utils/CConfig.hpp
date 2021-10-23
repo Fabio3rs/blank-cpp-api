@@ -43,6 +43,8 @@ class CConfig {
     auto at(const std::string &key,
             std::string &&default_ret = "") const noexcept -> std::string;
 
+    void set(const std::string &key, const std::string &value) { data[key] = value; }
+
     /**
      *@brief Reads and parses envp variable
      *

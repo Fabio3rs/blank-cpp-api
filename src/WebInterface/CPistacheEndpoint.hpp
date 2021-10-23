@@ -11,9 +11,9 @@
 #ifndef CPistacheEndpoint_hpp
 #define CPistacheEndpoint_hpp
 
+#include "../stdafx.hpp"
 #include "CController.hpp"
 #include "pistache.hpp"
-#include "../stdafx.hpp"
 
 /**
  *@brief CPistacheEndpoint webserver manager, the same program can have many of
@@ -62,6 +62,16 @@ class CPistacheEndpoint {
      *
      */
     CPistacheEndpoint() noexcept;
+
+    /**
+     * @brief get router handler
+     */
+    auto getRouterHandler() { return router.handler(); }
+
+    /**
+     * @brief get http endpoint
+    */
+    auto getHttpEndpoint() { return httpEndpoint; }
 
   private:
     /**

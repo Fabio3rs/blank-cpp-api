@@ -18,8 +18,18 @@ file(
 )
 
 file(
+    GLOB WEBCONTROLLERS_SOURCES 
+    "${msrcdir}/WebControllers/*.cpp"
+)
+
+file(
     GLOB WEBREQUEST_SOURCES 
     "${msrcdir}/WebRequest/*.cpp"
+)
+
+file(
+    GLOB REGISTERCONTROLLERS 
+    "${msrcdir}/RegisterControllers.cpp"
 )
 
 file(
@@ -37,7 +47,7 @@ pkg_check_modules(Pistache REQUIRED IMPORTED_TARGET libpistache)
 set(TEST_COMPILE_FLAGS -Weverything -Werror -Wno-disabled-macro-expansion -Wno-global-constructors -std=c++17 -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Werror -std=c++17 -Wno-c++98-compat -Wno-padded -Wno-date-time -Wno-c++98-compat-pedantic -Wno-exit-time-destructors -Wno-global-constructors")
 
-add_executable(maintest_binary ${ALL_TESTS_SOURCES} ${AUTHORIZATION_SOURCES} ${UTILS_SOURCES})
+add_executable(maintest_binary ${WEBSERVER_SOURCES} ${REGISTERCONTROLLERS} ${WEBREQUEST_SOURCES} ${WEBCONTROLLERS_SOURCES} ${ALL_TESTS_SOURCES} ${AUTHORIZATION_SOURCES} ${UTILS_SOURCES})
 
 target_precompile_headers(maintest_binary PRIVATE "${msrcdir}/stdafx.hpp"
                             PRIVATE "${msrcdir}/WebInterface/webstdafx.hpp"
@@ -45,6 +55,14 @@ target_precompile_headers(maintest_binary PRIVATE "${msrcdir}/stdafx.hpp"
 
 target_compile_options(maintest_binary PUBLIC ${TEST_COMPILE_FLAGS})
 target_link_libraries(maintest_binary GTest::GTest GTest::Main PkgConfig::Pistache)
+
+if(CURL_FOUND)
+    message("-- Curl encontrado!")
+    include_directories(${CURL_INCLUDE_DIRS})
+    target_link_libraries(maintest_binary ${CURL_LIBRARIES})
+else()
+    message(FATAL_ERROR "-- LibCurl is not found in your system.")
+endif(CURL_FOUND)
 
 if(Poco_FOUND)
     message("-- Poco encontrado!")

@@ -12,9 +12,8 @@
 #pragma once
 #ifndef POCOREQUEST_HPP
 #define POCOREQUEST_HPP
-#include <Poco/Dynamic/Var.h>
-#include <Poco/JSON/JSON.h>
-#include <Poco/JSON/Parser.h>
+#include "../stdafx.hpp"
+
 #include <Poco/Net/HTMLForm.h>
 #include <Poco/Net/HTTPClientSession.h>
 #include <Poco/Net/HTTPRequest.h>
