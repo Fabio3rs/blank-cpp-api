@@ -1,6 +1,5 @@
+#include "stdafx.hpp"
 #include "SeedDB.hpp"
-#include "Database/CSql.hpp"
-#include "utils/CConfig.hpp"
 #include <Poco/StreamCopier.h>
 #include <fstream>
 #include <streambuf>
@@ -25,7 +24,7 @@ static void seedPartnersTable(unique_conn_t &conn) {
     stmt->execute(sqlstring);
 }
 
-void APITeste::runAllDatabaseSeeders() {
+void SeedDB::runAllDatabaseSeeders() {
     unique_conn_t conn(CSql::instance().make_connection_cfg());
 
     conn->setAutoCommit(false);

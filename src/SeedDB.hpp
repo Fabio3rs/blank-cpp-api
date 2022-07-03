@@ -1,6 +1,6 @@
 #pragma once
 
-namespace APITeste {
+namespace SeedDB {
 
 void runAllDatabaseSeeders();
 

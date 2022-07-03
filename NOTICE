@@ -1,0 +1,5 @@
+AWS Lambda C++ SDK packager file
+Copyright 2018-present Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 http://aws.amazon.com/apache2.0
+Original https://github.com/awslabs/aws-lambda-cpp/blob/master/packaging/packager
+

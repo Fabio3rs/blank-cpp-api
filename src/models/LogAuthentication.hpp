@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Database/GenericDBConnection.hpp"
+#include "../stdafx.hpp"
 #include <chrono>
 #include <memory>
 #include <optional>

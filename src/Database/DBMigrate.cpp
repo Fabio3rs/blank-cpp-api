@@ -1,5 +1,5 @@
 #include "DBMigrate.hpp"
-#include "CSql.hpp"
+#include "../stdafx.hpp"
 #include <cppconn/prepared_statement.h>
 
 static auto connect_db(const DatabaseAddress &info) {
@@ -37,7 +37,7 @@ void DBMigrate::init_migration_table() {
 void DBMigrate::drop_all() {
     /**
      *@brief Unimplemented
-     * 
+     *
      */
 }
 

@@ -1,4 +1,3 @@
-#include "../Database/CSql.hpp"
 #include "LogAuthentication.hpp"
 
 static void get_this_model_data(LogAuthentication &val,

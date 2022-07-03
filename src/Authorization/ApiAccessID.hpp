@@ -11,7 +11,7 @@
 #pragma once
 #ifndef API_ACCESSID_HPP
 
-#include "../Database/CSql.hpp"
+#include "../stdafx.hpp"
 #include <Poco/Dynamic/Var.h>
 #include <Poco/JSON/JSON.h>
 #include <Poco/JSON/Parser.h>

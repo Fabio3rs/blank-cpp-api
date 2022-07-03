@@ -8,17 +8,15 @@
  * @copyright Copyright (c) 2021
  *
  */
-#include "RegisterControllers.hpp"
+#include "../vendor/cppapiframework/src/utils/DocAPI.hpp"
+#include "DBMigrationList.hpp"
+#include "InitWebService.hpp"
+#include "SeedDB.hpp"
+#include "routes/api.hpp"
 #include "stdafx.hpp"
-#include "utils/CLog.hpp"
 #include <fstream>
 #include <iostream>
 #include <signal.h>
-
-#include "DBMigrationList.hpp"
-#include "SeedDB.hpp"
-
-#include "utils/DocAPI.hpp"
 
 static std::shared_ptr<CPistacheEndpoint> endpoint;
 static std::atomic<bool> keepRunning = true;
@@ -98,7 +96,9 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     auto &conf = CConfig::config();
     conf.load_from_envp(envp);
 
-    CLog &log = CLog::log(conf.at("LOG_PATH", PROJECT_NAME ".log").c_str());
+    CLog::initSingleton(conf.at("LOG_PATH", PROJECT_NAME ".log"));
+
+    CLog &log = CLog::log();
 
     log << "API Starting";
     signal(SIGTERM, signal_callback);
@@ -130,15 +130,13 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     }
 
     if (seeddb) {
-        APITeste::runAllDatabaseSeeders();
+        SeedDB::runAllDatabaseSeeders();
     }
 
 #ifdef DOCAPI_ENABLED
     auto &docapi = DocAPI::singleton();
 
-    docapi.set_api_info_basic(
-        "API Desconhecida",
-        "Descrição API");
+    docapi.set_api_info_basic("API Desconhecida", "Descrição API");
     docapi.set_contact("Desenvolvimento Teste", "dev@www.exemplo.com.br",
                        "http://www.exemplo.com.br/");
     docapi.add_server("Homologação", "https://sandbox.example.com/");
@@ -152,26 +150,26 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     {
         CPistacheEndpoint &endp = *endpoint;
 
-        registerPistacheWebControllers(endp);
+        routes::api::registerRoutes(endp.get_router());
         initPistacheWebService(endp);
 
         wait_command(endp);
     }
 
-    log << "Exiting";
+    log << "Exiting API";
     endpoint.reset();
 
-    bool dumpdocsalways = false;
+    bool DumpDocs = false;
 
 #ifndef NDEBUG
-    dumpdocsalways = true;
+    DumpDocs = true;
 #endif
 
     {
         auto *it =
             std::find(argv, argvend, std::string_view("dumpdocsbeforeexit"));
 
-        if (it != argvend || dumpdocsalways) {
+        if (it != argvend || DumpDocs) {
             DocAPI::singleton().dump();
         }
     }

@@ -1,0 +1,3 @@
+[submodule "vendor/cppapiframework"]
+	path = vendor/cppapiframework
+	url = https://github.com/Fabio3rs/cppapiframework

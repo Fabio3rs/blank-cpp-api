@@ -10,7 +10,7 @@
  *
  */
 #include "DBMigrationList.hpp"
-#include "utils/CConfig.hpp"
+#include "stdafx.hpp"
 
 #include "Database/DBMigrate.hpp"
 

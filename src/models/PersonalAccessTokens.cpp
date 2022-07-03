@@ -1,5 +1,4 @@
 #include "PersonalAccessTokens.hpp"
-#include "../Database/CSql.hpp"
 
 auto PersonalAccessTokens::findByID(uint64_t fid) -> bool {
     auto sqlconn = std::reinterpret_pointer_cast<sql::Connection>(usingconn);

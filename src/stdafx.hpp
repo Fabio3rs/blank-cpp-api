@@ -1,7 +1,11 @@
 #pragma once
 
-#include "Database/GenericDBConnection.hpp"
-#include "utils/CConfig.hpp"
+#include "../vendor/cppapiframework/src/Database/CSql.hpp"
+#include "../vendor/cppapiframework/src/WebInterface/CController.hpp"
+#include "../vendor/cppapiframework/src/WebInterface/CPistacheEndpoint.hpp"
+#include "../vendor/cppapiframework/src/utils/CConfig.hpp"
+#include "../vendor/cppapiframework/src/utils/CLog.hpp"
+#include "../vendor/cppapiframework/src/utils/LogUtils.hpp"
 #include <Poco/Crypto/DigestEngine.h>
 #include <Poco/Dynamic/Var.h>
 #include <Poco/HMACEngine.h>

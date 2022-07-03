@@ -12,9 +12,11 @@
 #ifndef CWelcomeController_hpp
 #define CWelcomeController_hpp
 
-#include "../WebInterface/webstdafx.hpp"
+#include "../stdafx.hpp"
 
 class CWelcomeController : public CController {
+
+  public:
     /**
      *@brief Rota / fornece informações sobre se a API está no ar ou
      *"sucesso":false em caso de algum problema
@@ -25,11 +27,8 @@ class CWelcomeController : public CController {
     static void index_route(const Pistache::Rest::Request &request,
                             Pistache::Http::ResponseWriter response);
 
-  public:
-    void register_routes(const std::string &base,
-                         Pistache::Rest::Router &router) override;
-
-    CWelcomeController() = default;
+    static void not_found(const Pistache::Rest::Request &request,
+                            Pistache::Http::ResponseWriter response);
 };
 
 #endif
