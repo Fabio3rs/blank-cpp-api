@@ -10,12 +10,13 @@ RUN apt install -y clang-12 clang-tidy-12 clang-format-12 ninja-build cmake clan
 RUN apt install libcurl4 libcurl4-openssl-dev libpoco-dev libmysqlcppconn-dev libgtest-dev googletest redis-server redis-tools -y
 RUN apt install mariadb-client libmysqlcppconn-dev -y
 RUN apt install pkg-config zip unzip -y
+RUN apt install clang-format -y
 
 ENV CC=/usr/bin/clang-12
 ENV CXX=/usr/bin/clang++-12
 
 RUN mkdir /src
-COPY . /src
+ADD . /src
 RUN mkdir -p /src/build
 
 RUN cd /src/build && cmake .. -G Ninja && cmake --build . --config Debug --target all -j $(nproc) --

@@ -12,21 +12,25 @@
 #include "DBMigrationList.hpp"
 #include "InitWebService.hpp"
 #include "SeedDB.hpp"
+#include "autogen/jobslist.hpp"
+#include "config/Instances.hpp"
 #include "routes/api.hpp"
 #include "stdafx.hpp"
 #include <fstream>
 #include <iostream>
 #include <signal.h>
 
-static std::shared_ptr<CPistacheEndpoint> endpoint;
-static std::atomic<bool> keepRunning = true;
-static std::mutex cmdmtx;
+namespace {
+
+std::shared_ptr<CPistacheEndpoint> endpoint;
+std::atomic<bool> keepRunning = true;
+std::mutex cmdmtx;
 
 /**
  *@brief Handles program's shutdown sequence
  *
  */
-static void start_shutdown_seq() {
+void start_shutdown_seq() {
     std::lock_guard<std::mutex> lck(cmdmtx);
 
     auto &log = CLog::log();
@@ -45,12 +49,12 @@ static void start_shutdown_seq() {
     log.multiRegister("close(0) -> %0", close(0));
 }
 
-static void signal_callback(int signal) {
+void signal_callback(int signal) {
     CLog::log().multiRegister("Signal received %0", signal);
     start_shutdown_seq();
 }
 
-static void wait_command(CPistacheEndpoint &endp) {
+void wait_command(CPistacheEndpoint &endp) {
     std::cout << "Type stop to exit\n";
     std::string str;
     while (keepRunning) {
@@ -85,9 +89,42 @@ static void wait_command(CPistacheEndpoint &endp) {
     }
 }
 
+void job_handler() {
+    const std::string queue_name = Instances::singleton().queue_name;
+
+    LOGINF("Listeing for jobs on (%0)", queue_name);
+
+    while (keepRunning) {
+        if (!Instances::singleton().queueWorker->do_one(queue_name)) {
+            LOGDBG("No jobs available on (%0)", queue_name);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
+}
+
+void setup_instances() {
+    Instances &defInstances = Instances::singleton();
+    defInstances.queue_name =
+        CConfig::config().at("MYSQL_DATABASE", "apivpncheck") +
+        ":queue:default";
+    defInstances.queueSystem = std::make_shared<RedisQueue>();
+
+    {
+        auto worker = std::make_shared<job::QueueWorker>(
+            job::JobsHandler::default_instance(), defInstances.queueSystem);
+
+        worker->setForkToHandleJob(true);
+        worker->setCleanSuccessfulJobsLogs(false);
+        defInstances.queueWorker = worker;
+    }
+
+    autogen::registerJobs(*job::JobsHandler::default_instance());
+}
+
 #ifndef PROJECT_NAME
 #define PROJECT_NAME "unkownapi"
 #endif
+} // namespace
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
     /**
@@ -102,6 +139,8 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
 
     log << "API Starting";
     signal(SIGTERM, signal_callback);
+
+    setup_instances();
 
     auto *argvend = argv + argc;
 
@@ -133,6 +172,14 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
         SeedDB::runAllDatabaseSeeders();
     }
 
+    bool queue_work =
+        argvend != std::find(argv, argvend, std::string_view("queue:work"));
+
+    if (queue_work) {
+        job_handler();
+        return 0;
+    }
+
 #ifdef DOCAPI_ENABLED
     auto &docapi = DocAPI::singleton();
 
@@ -152,9 +199,8 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
 
         routes::api::registerRoutes(endp.get_router());
         initPistacheWebService(endp);
-
-        wait_command(endp);
     }
+    wait_command(*endpoint);
 
     log << "Exiting API";
     endpoint.reset();

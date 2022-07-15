@@ -27,6 +27,12 @@ class CWelcomeController : public CController {
     static void index_route(const Pistache::Rest::Request &request,
                             Pistache::Http::ResponseWriter response);
 
+    static void start_some_job(const Pistache::Rest::Request &request,
+                            Pistache::Http::ResponseWriter response);
+
+    static void get_some_job(const Pistache::Rest::Request &request,
+                            Pistache::Http::ResponseWriter response);
+
     static void not_found(const Pistache::Rest::Request &request,
                             Pistache::Http::ResponseWriter response);
 };

@@ -1,4 +1,12 @@
+setup:
+  addons:
+    - plan: heroku-redis:hobby-dev
+      as: REDIS
 build:
   docker:
     web: Dockerfile
+    worker: Dockerfile
+run:
+  web: /root/bootstrap web
+  worker: /root/bootstrap queue:work
 
