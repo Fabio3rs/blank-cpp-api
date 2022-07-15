@@ -14,7 +14,7 @@ void initPistacheWebService(CPistacheEndpoint &endp) {
     size_t server_threads = 2;
 
     {
-        std::string API_LISTEN_PORT = conf.at("API_LISTEN_PORT", "9000");
+        std::string API_LISTEN_PORT = conf.at("PORT", "9000");
         try {
             config_port = std::stoi(API_LISTEN_PORT, nullptr, 0);
         } catch (const std::exception &e) {
