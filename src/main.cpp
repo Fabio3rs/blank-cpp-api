@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2021
  *
  */
+#include "../vendor/cppapiframework/src/SSLUtils/InitClient.hpp"
 #include "../vendor/cppapiframework/src/utils/DocAPI.hpp"
 #include "DBMigrationList.hpp"
 #include "InitWebService.hpp"
@@ -136,6 +137,8 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     CLog::initSingleton(conf.at("LOG_PATH", PROJECT_NAME ".log"));
 
     CLog &log = CLog::log();
+
+    SSLUtils::initClient();
 
     log << "API Starting";
     signal(SIGTERM, signal_callback);

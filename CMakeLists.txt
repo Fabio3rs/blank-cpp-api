@@ -17,14 +17,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include(CPack)
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    message(STATUS "Setting G++ flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -O2 -std=c++17 -Wformat-security -Wconversion -Wsign-conversion")
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    message(STATUS "Setting Clang flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Werror -std=c++17 -Wno-c++98-compat -Wno-padded -Wno-date-time -Wno-c++98-compat-pedantic -Wno-disabled-macro-expansion -Wno-exit-time-destructors -Wno-global-constructors")
-endif()
-
 find_package(Poco REQUIRED COMPONENTS Crypto JSON Redis Net NetSSL)
 find_package(CURL REQUIRED)
 find_package(PkgConfig)

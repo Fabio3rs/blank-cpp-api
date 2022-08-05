@@ -26,6 +26,7 @@ RUN cd /src/build/bin && /src/packager blank_cpp_api && ls -lahtr built
 FROM alpine:latest AS runtime
 
 RUN apk --no-cache add ca-certificates
+ENV CUSTOM_CA_BUNDLE=/etc/ssl/cert.pem
 
 ENV LAMBDA_TASK_ROOT=/root
 WORKDIR /root/
@@ -33,3 +34,4 @@ RUN mkdir api
 COPY --from=0 /src/build/bin/built/ ./
 
 CMD ["/root/bootstrap"]
+
