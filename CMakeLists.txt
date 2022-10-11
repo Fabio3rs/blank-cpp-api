@@ -2,14 +2,16 @@ set(apiname blank_cpp_api)
 
 cmake_minimum_required(VERSION 3.6.0)
 project("${apiname}_lib" VERSION 0.1.0)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Werror -std=c++17 -Wno-c++98-compat -Wno-padded -Wno-date-time -Wno-c++98-compat-pedantic -Wno-exit-time-destructors -Wno-global-constructors")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -std=c++17 -Wno-c++98-compat -Wno-padded -Wno-date-time -Wno-c++98-compat-pedantic -Wno-exit-time-destructors -Wno-global-constructors")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_DEFAULT 17)
 set(CXX17 ON)
-set(CMAKE_CXX_EXTENSIONS Off)
-set(CMAKE_C_EXTENSIONS Off)
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_C_EXTENSIONS ON)
+
+set(CPPAPIFRAMEWORK_APPLY_FLAGS 1)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -20,7 +22,12 @@ include(CPack)
 find_package(Poco REQUIRED COMPONENTS Crypto JSON Redis Net NetSSL)
 find_package(CURL REQUIRED)
 find_package(PkgConfig)
-pkg_check_modules(Pistache REQUIRED IMPORTED_TARGET libpistache)
+
+set(PISTACHE_LIBRARY pistache)
+
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/vendor/pistache/include/)
+add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/pistache)
+add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/cppapiframework)
 
 include(CTest)
 enable_testing()
@@ -58,8 +65,6 @@ file(GLOB JOBS_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/jobs/*.hpp"
 )
 
-add_subdirectory(vendor/cppapiframework)
-
 ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_SOURCE_DIR}/src/autogen/jobslist.hpp
   COMMAND ${CMAKE_SOURCE_DIR}/vendor/cppapiframework/scripts/genjoblist.sh
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src
@@ -93,7 +98,7 @@ endif(CURL_FOUND)
 # verifica se o pistache foi encontrado e faz o link com a lib
 if(Pistache_FOUND)
     message("-- Pistache encontrado!")
-    target_link_libraries("${apiname}_lib" PkgConfig::Pistache)
+    target_link_libraries("${apiname}_lib" ${PISTACHE_LIBRARY})
 else()
     message(FATAL_ERROR "-- Pistache is not found in your system.")
 endif(Pistache_FOUND)

@@ -1,3 +1,6 @@
 [submodule "vendor/cppapiframework"]
 	path = vendor/cppapiframework
 	url = https://github.com/Fabio3rs/cppapiframework
+[submodule "vendor/pistache"]
+	path = vendor/pistache
+	url = https://github.com/pistacheio/pistache.git

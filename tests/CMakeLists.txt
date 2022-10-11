@@ -18,7 +18,7 @@ add_executable(maintest_binary ${WEBSERVER_SOURCES} ${REGISTERCONTROLLERS} ${WEB
 target_precompile_headers(maintest_binary PRIVATE "${msrcdir}/stdafx.hpp")
 
 target_compile_options(maintest_binary PUBLIC ${TEST_COMPILE_FLAGS})
-target_link_libraries(maintest_binary GTest::GTest GTest::Main PkgConfig::Pistache "${apiname}_lib")
+target_link_libraries(maintest_binary GTest::GTest GTest::Main ${PISTACHE_LIBRARY} "${apiname}_lib")
 
 if(CURL_FOUND)
     message("-- Curl encontrado!")
