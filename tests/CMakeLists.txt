@@ -11,8 +11,6 @@ file(
     "${srcdir}/*.cpp"
 )
 
-pkg_check_modules(Pistache REQUIRED IMPORTED_TARGET libpistache)
-
 add_executable(maintest_binary ${WEBSERVER_SOURCES} ${REGISTERCONTROLLERS} ${WEBREQUEST_SOURCES} ${WEBCONTROLLERS_SOURCES} ${ALL_TESTS_SOURCES} ${AUTHORIZATION_SOURCES} ${UTILS_SOURCES})
 
 target_precompile_headers(maintest_binary PRIVATE "${msrcdir}/stdafx.hpp")

@@ -24,6 +24,7 @@ find_package(CURL REQUIRED)
 find_package(PkgConfig)
 
 set(PISTACHE_LIBRARY pistache)
+set(Pistache_FOUND TRUE)
 
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/vendor/pistache/include/)
 add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/pistache)
