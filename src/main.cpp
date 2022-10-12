@@ -106,8 +106,7 @@ void job_handler() {
 void setup_instances() {
     Instances &defInstances = Instances::singleton();
     defInstances.queue_name =
-        CConfig::config().at("MYSQL_DATABASE", "apivpncheck") +
-        ":queue:default";
+        CConfig::config().at("MYSQL_DATABASE", "apicheck") + ":queue:default";
     defInstances.queueSystem = std::make_shared<RedisQueue>();
 
     {
@@ -121,20 +120,17 @@ void setup_instances() {
 
     autogen::registerJobs(*job::JobsHandler::default_instance());
 }
-
-#ifndef PROJECT_NAME
-#define PROJECT_NAME "unkownapi"
-#endif
 } // namespace
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
     /**
      * Testing environment variables
      */
+
+    CLog::initSingleton({{}, &std::cout});
+
     auto &conf = CConfig::config();
     conf.load_from_envp(envp);
-
-    CLog::initSingleton(conf.at("LOG_PATH", PROJECT_NAME ".log"));
 
     CLog &log = CLog::log();
 
