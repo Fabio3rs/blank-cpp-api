@@ -2,7 +2,7 @@ set(apiname blank_cpp_api)
 
 cmake_minimum_required(VERSION 3.6.0)
 project("${apiname}_lib" VERSION 0.1.0)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -std=c++17 -Wno-c++98-compat -Wno-padded -Wno-date-time -Wno-c++98-compat-pedantic -Wno-exit-time-destructors -Wno-global-constructors")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -std=c++17 -Wno-c++98-compat -Wno-padded -Wno-date-time -Wno-c++98-compat-pedantic -Wno-exit-time-destructors -Wno-global-constructors -Wno-gnu")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -44,6 +44,7 @@ file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/SeedDB.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/InitWebService.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/WebControllers/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/WebMiddlewares/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utils/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/config/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/routes/*.cpp"

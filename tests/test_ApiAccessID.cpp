@@ -38,7 +38,8 @@ static const std::string SECRET_EXAMPLE_HASH =
  */
 TEST(ApiAccessIDTest, TestParsePlainText) {
     auto pair = ApiAccessID::parseAccessID(std::to_string(API_TEST_ID) + "|" +
-                                           SECRET_EXAMPLE);
+                                           SECRET_EXAMPLE)
+                    .unwrap();
 
     EXPECT_EQ(pair.first, API_TEST_ID);
     EXPECT_EQ(pair.second, SECRET_EXAMPLE);
@@ -64,7 +65,7 @@ TEST(ApiAccessIDTest, TestParsePlainTextBearer) {
     auto plainaccessid =
         ApiAccessID::getPlainAccessIDFromBearerAuth("Bearer " + TEST_PLAIN_ID);
 
-    EXPECT_EQ(plainaccessid, TEST_PLAIN_ID);
+    EXPECT_EQ(plainaccessid.unwrap(), TEST_PLAIN_ID);
 }
 
 /**
@@ -74,7 +75,7 @@ TEST(ApiAccessIDTest, TestParsePlainTextBearer) {
 TEST(ApiAccessIDTest, TestParseAndHashPlainAccessID) {
     const auto TEST_PLAIN_ID =
         std::to_string(API_TEST_ID) + "|" + SECRET_EXAMPLE;
-    auto pair = ApiAccessID::parseAndHashPlainAccessID(TEST_PLAIN_ID);
+    auto pair = ApiAccessID::parseAndHashPlainAccessID(TEST_PLAIN_ID).unwrap();
 
     EXPECT_EQ(pair.first, API_TEST_ID);
     EXPECT_EQ(pair.second, SECRET_EXAMPLE_HASH);

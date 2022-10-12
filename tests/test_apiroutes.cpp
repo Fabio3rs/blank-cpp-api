@@ -26,7 +26,7 @@ class TestAPIRoutes : public ::testing::Test {
   protected:
     void SetUp() override {
         auto &config = CConfig::config();
-        config.set("API_LISTEN_PORT", "0");
+        config.set("PORT", "0");
         endpoint = getEndPoint();
         ASSERT_TRUE(endpoint != nullptr);
         port = endpoint->getPort();

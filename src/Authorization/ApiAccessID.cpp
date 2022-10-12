@@ -1,49 +1,65 @@
 #include "ApiAccessID.hpp"
+#include "../../vendor/cppapiframework/src/utils/ResultMacros.hpp"
+#include "models/PersonalAccessTokens.hpp"
 #include <Poco/Crypto/DigestEngine.h>
+#include <exception>
+#include <openssl/crypto.h>
+#include <pistache/http_defs.h>
+#include <pistache/http_header.h>
 #include <string>
 #include <string_view>
 
+auto ApiAccessID::safe_hash_cmp(const std::string &hash_a,
+                                const std::string &hash_b) -> compare_t {
+    if (hash_a.size() != hash_b.size() ||
+        CRYPTO_memcmp(hash_a.c_str(), hash_b.c_str(), hash_b.size()) != 0) {
+        return compare_t::error_t{"Access ID invalido"};
+    }
+
+    return compare_t::ok_t{};
+}
+
 auto ApiAccessID::getAPIAuthorization(const Pistache::Rest::Request &request)
-    -> Poco::JSON::Object::Ptr {
+    -> authres_t {
     const auto auth_header =
         request.headers().tryGet<Pistache::Http::Header::Authorization>();
 
     if (!auth_header) {
-        throw std::invalid_argument("No Authorization header found");
+        return result_t::error_t{"No Authorization header found"};
     }
 
     const std::string userAccessID = auth_header->value();
 
     if (userAccessID.empty()) {
-        throw std::invalid_argument("AccessID is empty");
+        return result_t::error_t{"AccessID is empty"};
     }
 
-    std::string plainAccessID = getPlainAccessIDFromBearerAuth(userAccessID);
+    if (auth_header->getMethod() !=
+        Pistache::Http::Header::Authorization::Method::Bearer) {
+        return result_t::error_t{"AccessID should be a Bearer Token"};
+    }
+
+    std::string plainAccessID =
+        EXPECT_RESULT(getPlainAccessIDFromBearerAuth(userAccessID));
 
     return getAPIAccessPlainID(plainAccessID);
 }
 
 auto ApiAccessID::getAPIAccessFromBearerAuth(const std::string &userAccessID)
-    -> Poco::JSON::Object::Ptr {
+    -> authres_t {
     if (userAccessID.empty()) {
-        throw std::invalid_argument("AccessID is empty");
+        return result_t::error_t{"AccessID is empty"};
     }
 
-    std::string plainAccessID = getPlainAccessIDFromBearerAuth(userAccessID);
+    std::string plainAccessID =
+        EXPECT_RESULT(getPlainAccessIDFromBearerAuth(userAccessID));
 
     return getAPIAccessPlainID(plainAccessID);
 }
 
-auto ApiAccessID::getAPIAccessPlainID(const std::string &AccessID)
-    -> Poco::JSON::Object::Ptr {
-    if (!conn) {
-        throw std::invalid_argument("No connection to the database!");
-    }
-
-    std::pair<uint64_t, std::string> AccessKPairHashed =
-        parseAndHashPlainAccessID(AccessID);
-
-    std::string query;
+void ApiAccessID::makeAccessIdSqlSelect(
+    std::pair<unsigned long, std::basic_string<char>> &AccessKPairHashed,
+    std::string &query) {
     query.reserve(256);
 
     if (AccessKPairHashed.first != 0) {
@@ -57,85 +73,97 @@ auto ApiAccessID::getAPIAccessPlainID(const std::string &AccessID)
         query += AccessKPairHashed.second; // Sanitizado pela hash sha256
         query += "' LIMIT 1;";
     }
+}
 
-    unique_statement_t ssmt(conn->createStatement());
+ApiAccessID::authres_t ApiAccessID::getApiAccessIdFromIdHash(
+    std::pair<unsigned long, std::basic_string<char>> &AccessKPairHashed) {
+    std::string query;
+    makeAccessIdSqlSelect(AccessKPairHashed, query);
 
-    unique_resultset_t results(ssmt->executeQuery(query));
+    auto ssmt = unique_statement_t(conn->createStatement());
 
-    if (results->rowsCount() == 0) {
-        throw std::invalid_argument("Access ID invalido");
-    }
+    auto results = unique_resultset_t(ssmt->executeQuery(query));
 
-    if (!results->next()) {
-        throw std::invalid_argument("Access ID invalido");
+    if (results->rowsCount() == 0 || !results->next()) {
+        return authres_t::error_t{"Access ID invalido"};
     }
 
     std::string accesskey = results->getString("token");
 
-    if (accesskey != AccessKPairHashed.second) {
-        throw std::invalid_argument("Access ID invalido");
-    }
+    EXPECT_RESULT(safe_hash_cmp(accesskey, AccessKPairHashed.second));
 
-    Poco::JSON::Object::Ptr result = new Poco::JSON::Object;
+    PersonalAccess access;
 
-    result->set("id", results->getUInt64("id"));
-    result->set("token", accesskey);
-    result->set("tokenable_id", results->getUInt64("tokenable_id"));
-    // SQLString estava sendo convertido para alguma outra coisa pela Poco.
-    // Necessário cast manual
-    result->set("tokenable_type",
-                std::string(results->getString("tokenable_type")));
+    access.id = results->getUInt64("id");
+    access.token = accesskey;
+    access.tokenable_id = results->getUInt64("tokenable_id");
+    access.tokenable_type = results->getString("tokenable_type");
 
-    Poco::JSON::Array::Ptr abilities;
     try {
         Poco::JSON::Parser parser;
-        abilities = parser.parse(std::string(results->getString("abilities")))
-                        .extract<Poco::JSON::Array::Ptr>();
+        access.abilities =
+            parser.parse(std::string(results->getString("abilities")))
+                .extract<Poco::JSON::Array::Ptr>();
     } catch (const std::exception &e) {
-        abilities = new Poco::JSON::Array;
+        if (access.abilities.isNull()) {
+            access.abilities = new Poco::JSON::Array;
+        }
         std::cerr << e.what() << '\n';
     }
 
-    result->set("abilities", abilities);
+    return authres_t::ok_t{access};
+}
 
-    return result;
+auto ApiAccessID::getAPIAccessPlainID(const std::string &AccessID)
+    -> authres_t {
+    if (!conn) {
+        return authres_t::error_t{"No connection to the database!"};
+    }
+
+    auto AccessKPairHashed = EXPECT_RESULT(parseAndHashPlainAccessID(AccessID));
+    return getApiAccessIdFromIdHash(AccessKPairHashed);
 }
 
 auto ApiAccessID::getPlainAccessIDFromBearerAuth(
-    const std::string &UserAccessID) -> std::string {
+    const std::string &UserAccessID)
+    -> utils::Result<std::string, std::string> {
     const std::string Bearer = "Bearer ";
     if (UserAccessID.size() < Bearer.size() ||
         UserAccessID.find_first_of(Bearer) != 0) {
-        throw std::invalid_argument("AccessID is invalid");
+        return utils::Err<std::string>{"AccessID is invalid"};
     }
 
     std::string plainAccessID = UserAccessID.substr(Bearer.size());
-    return plainAccessID;
+    return utils::Ok<std::string>{plainAccessID};
 }
 
-auto ApiAccessID::parseAccessID(const std::string &AccessID)
-    -> std::pair<uint64_t, std::string> {
+auto ApiAccessID::parseAccessID(const std::string &AccessID) -> parse_t {
     if (AccessID.empty()) {
-        throw std::invalid_argument("API Access ID is empty");
+        return parse_t::error_t{"API Access ID is empty"};
     }
 
     std::size_t IdEnd = AccessID.find_first_of('|');
 
-    std::string idPlainText;
+    if (IdEnd == std::string::npos) {
+        return parse_t::ok_t{{0, AccessID}};
+    }
+
     uint64_t iddb = 0;
 
-    if (IdEnd == std::string::npos) {
-        idPlainText = AccessID;
-    } else {
+    try {
         iddb = std::stoull(AccessID.substr(0, IdEnd));
-        idPlainText = AccessID.substr(IdEnd + 1);
+    } catch (const std::exception &e) {
+        using namespace std::string_literals;
+        return parse_t::error_t{"API Access ID Parse error: "s + e.what()};
     }
 
-    if (AccessID.empty()) {
-        throw std::invalid_argument("API Access ID is empty");
+    std::string idPlainText = AccessID.substr(IdEnd + 1);
+
+    if (idPlainText.empty()) {
+        return parse_t::error_t{"Plain API Access ID is empty"};
     }
 
-    return {iddb, idPlainText};
+    return parse_t::ok_t{{iddb, idPlainText}};
 }
 
 auto ApiAccessID::hashPlainAccessID(const std::string &PlainAccessID)
@@ -148,11 +176,11 @@ auto ApiAccessID::hashPlainAccessID(const std::string &PlainAccessID)
 }
 
 auto ApiAccessID::parseAndHashPlainAccessID(const std::string &PlainAccessID)
-    -> std::pair<uint64_t, std::string> {
-    std::pair<uint64_t, std::string> AccessKPair = parseAccessID(PlainAccessID);
+    -> parse_t {
+    auto AccessKPair = EXPECT_RESULT(parseAccessID(PlainAccessID));
     AccessKPair.second = hashPlainAccessID(AccessKPair.second);
 
-    return AccessKPair;
+    return parse_t::ok_t{AccessKPair};
 }
 
 auto ApiAccessID::create_table_mysql() -> std::string {

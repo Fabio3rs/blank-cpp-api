@@ -10,6 +10,7 @@
 #include "../vendor/cppapiframework/src/utils/CLog.hpp"
 #include "../vendor/cppapiframework/src/utils/LogUtils.hpp"
 #include "../vendor/cppapiframework/src/utils/RedisService.hpp"
+#include "../vendor/cppapiframework/src/utils/Result.hpp"
 #include <Poco/Crypto/DigestEngine.h>
 #include <Poco/Dynamic/Var.h>
 #include <Poco/HMACEngine.h>
