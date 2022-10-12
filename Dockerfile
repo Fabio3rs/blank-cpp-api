@@ -16,7 +16,7 @@ RUN mkdir /src
 ADD . /src
 RUN mkdir -p /src/build
 
-RUN rm /src/build/CMakeCache.txt
+RUN rm /src/build/CMakeCache.txt || echo "CMakeCache do not exists"
 RUN cd /src/build && cmake .. -G Ninja && cmake --build . --config Debug --target all -j $(nproc) --
 
 RUN cd /src/build/bin && /src/packager blank_cpp_api && ls -lahtr built
