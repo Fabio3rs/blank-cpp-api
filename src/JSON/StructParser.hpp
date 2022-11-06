@@ -198,7 +198,7 @@ compileTimeSort(std::array<std::pair<std::string_view, T>, N> val) {
 }
 
 struct InitializeCallbacks {
-    void (*set)(void *indata, const Poco::Dynamic::Var &val){};
+    void (*set)(void *indata, Poco::Dynamic::Var &&val){};
     std::unique_ptr<StructFiller> (*makeArray)(void *indata){};
     std::unique_ptr<StructFiller> (*makeObject)(void *indata){};
 };
@@ -387,7 +387,7 @@ template <> struct Filter<std::string> : public StructFiller {
 };
 
 template <class T> struct setField {
-    void operator()(T &field, const Poco::Dynamic::Var &val) {
+    void operator()(T &field, Poco::Dynamic::Var &&val) {
         if (val.type() == typeid(T)) {
             field = std::move(val.extract<T>());
         } else {
@@ -398,7 +398,7 @@ template <class T> struct setField {
 
 template <class Tp> struct setField<std::vector<Tp>> {
     void operator()(std::vector<Tp> & /*field*/,
-                    const Poco::Dynamic::Var & /*val*/) {
+                    Poco::Dynamic::Var && /*val*/) {
         throw std::runtime_error("Unavailable");
     }
 };
@@ -411,10 +411,10 @@ template <class Tp> struct setField<std::vector<Tp>> {
     };
 
 #define MAKE_SET_FN(STRUCT_T, FIELDNAME)                                       \
-    [](void *indata, const Poco::Dynamic::Var &val) {                          \
+    [](void *indata, Poco::Dynamic::Var &&val) {                               \
         auto *data = reinterpret_cast<STRUCT_T *>(indata);                     \
         setField<decltype(data->FIELDNAME)> setter;                            \
-        setter(data->FIELDNAME, val);                                          \
+        setter(data->FIELDNAME, std::move(val));                               \
     }
 
 #define MAKE_ARRAY_FN(STRUCT_T, FIELDNAME)                                     \
@@ -445,7 +445,7 @@ struct Filter<std::vector<vecdata_t>> : public StructFiller {
     void set(Poco::Dynamic::Var &&val) {
         ptrdata->emplace_back();
         setField<vecdata_t> data;
-        data(ptrdata->back(), val);
+        data(ptrdata->back(), std::move(val));
     }
 
     auto startObject(StructParser & /*parser*/) -> ptr_t override {
@@ -551,8 +551,7 @@ template <class T> struct FieldList {};
 
 #define MAKE_DISABLE_SET_STRUCT(STRUCT_T)                                      \
     template <> struct setField<STRUCT_T> {                                    \
-        void operator()(STRUCT_T & /*field*/,                                  \
-                        const Poco::Dynamic::Var & /*val*/) {                  \
+        void operator()(STRUCT_T & /*field*/, Poco::Dynamic::Var && /*val*/) { \
             throw std::runtime_error("Unavailable for " #STRUCT_T);            \
         }                                                                      \
     }
@@ -565,7 +564,7 @@ template <class T> struct TemplateStructFiller : public StructFiller {
     }
 
     virtual void set(StructParser & /*parser*/, const std::string &k,
-                     const Poco::Dynamic::Var &val) {
+                     Poco::Dynamic::Var &&val) {
         auto *res = find(k);
         std::cout << "key to set " << k << std::endl;
 
@@ -577,7 +576,7 @@ template <class T> struct TemplateStructFiller : public StructFiller {
             throw std::runtime_error("invalid key " + k);
         }
 
-        res->set(ptrdata, val);
+        res->set(ptrdata, std::move(val));
     }
 
     virtual void reset() override {}
