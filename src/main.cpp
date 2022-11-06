@@ -20,6 +20,7 @@
 #include "JSON/StructParser.hpp"
 #include <Poco/Crypto/EVPPKey.h>
 #include <Poco/JSON/Parser.h>
+#include <Poco/SharedPtr.h>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -176,7 +177,7 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     {
         TestJs data;
 
-        auto *sparser = new StructParser;
+        Poco::SharedPtr<StructParser> sparser = new StructParser;
         sparser->current =
             std::make_unique<constsorttest::TemplateStructFiller<TestJs>>(data);
 
