@@ -17,9 +17,20 @@
 #include "config/Instances.hpp"
 #include "routes/api.hpp"
 #include "stdafx.hpp"
+#include "JSON/StructParser.hpp"
+#include <Poco/Crypto/EVPPKey.h>
+#include <Poco/JSON/Parser.h>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/rsa.h>
 #include <signal.h>
+#include <sstream>
+#include <string>
 
 namespace {
 
@@ -120,7 +131,31 @@ void setup_instances() {
 
     autogen::registerJobs(*job::JobsHandler::default_instance());
 }
+
+struct AnotherStruct {
+    std::string name;
+    std::string lastname;
+};
+
+struct TestJs {
+    std::string val;
+    std::string anotherval;
+
+    std::vector<std::string> dataarr;
+
+    int64_t intvalue;
+
+    AnotherStruct userdata;
+};
+
 } // namespace
+
+namespace constsorttest {
+MAKE_DISABLE_SET_STRUCT(AnotherStruct);
+MAKE_START_OBJECT_SPECIALIZATION(AnotherStruct);
+MAKE_FIELD_LIST_JS(AnotherStruct, name, lastname);
+MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata);
+} // namespace constsorttest
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
     /**
@@ -133,6 +168,42 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     conf.load_from_envp(envp);
 
     CLog &log = CLog::log();
+
+    {
+        TestJs data;
+
+        auto *sparser = new StructParser;
+        sparser->current =
+            std::make_unique<constsorttest::TemplateStructFiller<TestJs>>(data);
+
+        Poco::JSON::Parser parser(sparser);
+        parser.parse(R"json({
+            "anotherval" : 0,
+            "val" : "AAAAA TESTE",
+            "dataarr": [
+                "a",
+                "b",
+                "c",
+                "d"
+            ],
+            "intvalue": 10,
+            "userdata" : {
+                "name" : "Fulano",
+                "lastname" : "De Tal"
+            }
+        })json");
+
+        std::cout << "data.anotherval " << data.anotherval << std::endl;
+        std::cout << "data.val " << data.val << std::endl;
+        std::cout << "data.intvalue " << data.intvalue << std::endl;
+        std::cout << "data.userdata.name " << data.userdata.name << std::endl;
+        std::cout << "data.userdata.lastname " << data.userdata.lastname
+                  << std::endl;
+
+        for (const auto &d : data.dataarr) {
+            std::cout << " dataarr val " << d << std::endl;
+        }
+    }
 
     SSLUtils::initClient();
 

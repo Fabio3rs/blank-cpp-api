@@ -5,6 +5,7 @@
 #include "../vendor/cppapiframework/src/WebInterface/CPistacheEndpoint.hpp"
 #include "../vendor/cppapiframework/src/jobhandler/JobsHandler.hpp"
 #include "../vendor/cppapiframework/src/jobhandler/QueueWorker.hpp"
+#include "../vendor/cppapiframework/src/jobhandler/QueueableJob.hpp"
 #include "../vendor/cppapiframework/src/queues/RedisQueue.hpp"
 #include "../vendor/cppapiframework/src/utils/CConfig.hpp"
 #include "../vendor/cppapiframework/src/utils/CLog.hpp"

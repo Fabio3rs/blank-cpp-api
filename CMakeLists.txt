@@ -51,6 +51,7 @@ file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/jobs/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/migrations/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/models/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/JSON/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/WebInterface/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Authorization/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/WebRequest/*.cpp"
