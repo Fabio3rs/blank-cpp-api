@@ -443,11 +443,9 @@ struct Filter<std::vector<vecdata_t>> : public StructFiller {
     /// Resets the handler state.
 
     void set(Poco::Dynamic::Var &&val) {
-        if (val.type() == typeid(decltype(*ptrdata))) {
-            ptrdata->emplace_back(std::move(val.extract<vecdata_t>()));
-        } else {
-            ptrdata->emplace_back(val.convert<vecdata_t>());
-        }
+        ptrdata->emplace_back();
+        setField<vecdata_t> data;
+        data(ptrdata->back(), val);
     }
 
     auto startObject(StructParser & /*parser*/) -> ptr_t override {

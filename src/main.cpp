@@ -31,6 +31,7 @@
 #include <signal.h>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -146,6 +147,8 @@ struct TestJs {
     int64_t intvalue;
 
     AnotherStruct userdata;
+
+    std::vector<AnotherStruct> otherUsers;
 };
 
 } // namespace
@@ -154,7 +157,8 @@ namespace constsorttest {
 MAKE_DISABLE_SET_STRUCT(AnotherStruct);
 MAKE_START_OBJECT_SPECIALIZATION(AnotherStruct);
 MAKE_FIELD_LIST_JS(AnotherStruct, name, lastname);
-MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata);
+MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata,
+                   otherUsers);
 } // namespace constsorttest
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
@@ -190,7 +194,25 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
             "userdata" : {
                 "name" : "Fulano",
                 "lastname" : "De Tal"
-            }
+            },
+            "otherUsers" : [
+                {
+                    "name" : "Fulano",
+                    "lastname" : "De Tal 2"
+                },
+                {
+                    "name" : "Fulano",
+                    "lastname" : "De Tal 3"
+                },
+                {
+                    "name" : "Fulano",
+                    "lastname" : "De Tal 4"
+                },
+                {
+                    "name" : "Fulano",
+                    "lastname" : "De Tal 5"
+                }
+            ]
         })json");
 
         std::cout << "data.anotherval " << data.anotherval << std::endl;
@@ -202,6 +224,10 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
 
         for (const auto &d : data.dataarr) {
             std::cout << " dataarr val " << d << std::endl;
+        }
+        for (const auto &d : data.otherUsers) {
+            std::cout << "d.name " << d.name << std::endl;
+            std::cout << "d.lastname " << d.lastname << std::endl;
         }
     }
 
