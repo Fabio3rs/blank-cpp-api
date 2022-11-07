@@ -19,6 +19,17 @@
 #include <vector>
 
 namespace JSONStructParser {
+template <class T, std::size_t = sizeof(
+                       static_cast<void (Poco::Dynamic::VarHolder::*)(
+                           T &) const>(&Poco::Dynamic::VarHolder::convert))>
+std::true_type has_var_holder_overload(T *);
+
+std::false_type has_var_holder_overload(...);
+
+template <class T>
+using has_complete_overl =
+    decltype(has_var_holder_overload(std::declval<T *>()));
+
 class StructParser;
 
 struct StructFiller {
@@ -408,15 +419,31 @@ template <class T> auto realMakeObjectFor(T &field) {
     return maker(field);
 }
 
+template <class ndata_t>
+inline void emplace_data(std::vector<ndata_t> &vec, Poco::Dynamic::Var &&val,
+                         std::true_type /**/) {
+    if (val.type() == typeid(ndata_t)) {
+        vec.emplace_back(std::move(val.extract<ndata_t>()));
+    } else {
+        vec.emplace_back(val.convert<ndata_t>());
+    }
+}
+
+template <class ndata_t>
+inline void emplace_data(std::vector<ndata_t> &vec, Poco::Dynamic::Var &&val,
+                         std::false_type /**/) {
+    vec.emplace_back();
+    setField<ndata_t> data;
+    data(vec.back(), std::move(val));
+}
+
 template <class vecdata_t>
 struct Filter<std::vector<vecdata_t>> : public StructFiller {
     void reset() override { ptrdata->clear(); }
     /// Resets the handler state.
 
     void set(Poco::Dynamic::Var &&val) {
-        ptrdata->emplace_back();
-        setField<vecdata_t> data;
-        data(ptrdata->back(), std::move(val));
+        emplace_data(*ptrdata, std::move(val), has_complete_overl<vecdata_t>{});
     }
 
     auto startObject(StructParser & /*parser*/) -> ptr_t override {

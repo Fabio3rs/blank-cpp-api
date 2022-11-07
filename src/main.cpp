@@ -19,6 +19,8 @@
 #include "stdafx.hpp"
 #include "JSON/StructParserMacros.hpp"
 #include <Poco/Crypto/EVPPKey.h>
+#include <Poco/Dynamic/Var.h>
+#include <Poco/Dynamic/VarHolder.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/SharedPtr.h>
 #include <cstdint>
@@ -32,6 +34,7 @@
 #include <signal.h>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace {
@@ -150,6 +153,8 @@ struct TestJs {
     AnotherStruct userdata;
 
     std::vector<AnotherStruct> otherUsers;
+
+    bool algumacoisa{};
 };
 
 } // namespace
@@ -159,7 +164,7 @@ MAKE_DISABLE_SET_STRUCT(AnotherStruct);
 MAKE_START_OBJECT_SPECIALIZATION(AnotherStruct);
 MAKE_FIELD_LIST_JS(AnotherStruct, name, lastname);
 MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata,
-                   otherUsers);
+                   otherUsers, algumacoisa);
 } // namespace JSONStructParser
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
@@ -215,7 +220,8 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
                     "name" : "Fulano",
                     "lastname" : "De Tal 5"
                 }
-            ]
+            ],
+            "algumacoisa": true
         })json");
 
         std::cout << "data.anotherval " << data.anotherval << std::endl;
@@ -232,6 +238,8 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
             std::cout << "d.name " << d.name << std::endl;
             std::cout << "d.lastname " << d.lastname << std::endl;
         }
+
+        std::cout << "data.algumacoisa " << data.algumacoisa << std::endl;
     }
 
     SSLUtils::initClient();
