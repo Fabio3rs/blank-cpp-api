@@ -1,5 +1,5 @@
 #include "StructParser.hpp"
 
-StructFiller::~StructFiller() = default;
+JSONStructParser::StructFiller::~StructFiller() = default;
 
-StructParser::~StructParser() = default;
+JSONStructParser::StructParser::~StructParser() = default;

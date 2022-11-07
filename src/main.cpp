@@ -17,7 +17,7 @@
 #include "config/Instances.hpp"
 #include "routes/api.hpp"
 #include "stdafx.hpp"
-#include "JSON/StructParser.hpp"
+#include "JSON/StructParserMacros.hpp"
 #include <Poco/Crypto/EVPPKey.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/SharedPtr.h>
@@ -154,13 +154,13 @@ struct TestJs {
 
 } // namespace
 
-namespace constsorttest {
+namespace JSONStructParser {
 MAKE_DISABLE_SET_STRUCT(AnotherStruct);
 MAKE_START_OBJECT_SPECIALIZATION(AnotherStruct);
 MAKE_FIELD_LIST_JS(AnotherStruct, name, lastname);
 MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata,
                    otherUsers);
-} // namespace constsorttest
+} // namespace JSONStructParser
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
     /**
@@ -177,9 +177,11 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     {
         TestJs data;
 
-        Poco::SharedPtr<StructParser> sparser = new StructParser;
+        Poco::SharedPtr<JSONStructParser::StructParser> sparser =
+            new JSONStructParser::StructParser;
         sparser->current =
-            std::make_unique<constsorttest::TemplateStructFiller<TestJs>>(data);
+            std::make_unique<JSONStructParser::TemplateStructFiller<TestJs>>(
+                data);
 
         Poco::JSON::Parser parser(sparser);
         parser.parse(R"json({
