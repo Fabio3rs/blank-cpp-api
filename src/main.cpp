@@ -162,7 +162,9 @@ struct TestJs {
 namespace JSONStructParser {
 MAKE_DISABLE_SET_STRUCT(AnotherStruct);
 MAKE_START_OBJECT_SPECIALIZATION(AnotherStruct);
+// NOLINTNEXTLINE
 MAKE_FIELD_LIST_JS(AnotherStruct, name, lastname);
+// NOLINTNEXTLINE
 MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata,
                    otherUsers, algumacoisa);
 } // namespace JSONStructParser
@@ -183,10 +185,9 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
         TestJs data;
 
         Poco::SharedPtr<JSONStructParser::StructParser> sparser =
-            new JSONStructParser::StructParser;
-        sparser->current =
-            std::make_unique<JSONStructParser::TemplateStructFiller<TestJs>>(
-                data);
+            new JSONStructParser::StructParser(
+                std::make_unique<
+                    JSONStructParser::TemplateStructFiller<TestJs>>(data));
 
         Poco::JSON::Parser parser(sparser);
         parser.parse(R"json({

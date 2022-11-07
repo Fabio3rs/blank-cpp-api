@@ -181,6 +181,13 @@ class StructParser : public Poco::JSON::Handler {
     std::unique_ptr<StructFiller> current;
     std::stack<std::unique_ptr<StructFiller>> stack;
 
+    StructParser() = default;
+    StructParser(const StructParser &) = delete;
+    StructParser(StructParser &&) = delete;
+    StructParser &operator=(const StructParser &) = delete;
+    StructParser &operator=(StructParser &&) = delete;
+    StructParser(std::unique_ptr<StructFiller> &&filler)
+        : current(std::move(filler)) {}
     ~StructParser() override;
 };
 
@@ -394,7 +401,7 @@ template <> struct Filter<std::string> : public StructFiller {
 
     Filter() = default;
     Filter(std::string &data) : ptrdata(&data) {}
-    virtual ~Filter() override = default;
+    virtual ~Filter() override;
 };
 
 template <class T> struct setField {
