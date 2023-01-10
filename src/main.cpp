@@ -17,7 +17,6 @@
 #include "config/Instances.hpp"
 #include "routes/api.hpp"
 #include "stdafx.hpp"
-#include "JSON/StructParserMacros.hpp"
 #include <Poco/Crypto/EVPPKey.h>
 #include <Poco/Dynamic/Var.h>
 #include <Poco/Dynamic/VarHolder.h>
@@ -109,7 +108,7 @@ void wait_command(CPistacheEndpoint &endp) {
 void job_handler() {
     const std::string queue_name = Instances::singleton().queue_name;
 
-    LOGINF("Listeing for jobs on (%0)", queue_name);
+    LOGINF("Listening for jobs on (%0)", queue_name);
 
     while (keepRunning) {
         if (!Instances::singleton().queueWorker->do_one(queue_name)) {
@@ -122,7 +121,7 @@ void job_handler() {
 void setup_instances() {
     Instances &defInstances = Instances::singleton();
     defInstances.queue_name =
-        CConfig::config().at("MYSQL_DATABASE", "apicheck") + ":queue:default";
+        CConfig::config().at("MYSQL_DATABASE", "apitest") + ":queue:default";
     defInstances.queueSystem = std::make_shared<RedisQueue>();
 
     {
@@ -136,38 +135,7 @@ void setup_instances() {
 
     autogen::registerJobs(*job::JobsHandler::default_instance());
 }
-
-struct AnotherStruct {
-    std::string name;
-    std::string lastname;
-};
-
-struct TestJs {
-    std::string val;
-    std::string anotherval;
-
-    std::vector<std::string> dataarr;
-
-    int64_t intvalue;
-
-    AnotherStruct userdata;
-
-    std::vector<AnotherStruct> otherUsers;
-
-    bool algumacoisa{};
-};
-
 } // namespace
-
-namespace JSONStructParser {
-MAKE_DISABLE_SET_STRUCT(AnotherStruct);
-MAKE_START_OBJECT_SPECIALIZATION(AnotherStruct);
-// NOLINTNEXTLINE
-MAKE_FIELD_LIST_JS(AnotherStruct, name, lastname);
-// NOLINTNEXTLINE
-MAKE_FIELD_LIST_JS(TestJs, anotherval, val, dataarr, intvalue, userdata,
-                   otherUsers, algumacoisa);
-} // namespace JSONStructParser
 
 auto main(int argc, const char *argv[], const char *envp[]) -> int {
     /**
@@ -180,68 +148,6 @@ auto main(int argc, const char *argv[], const char *envp[]) -> int {
     conf.load_from_envp(envp);
 
     CLog &log = CLog::log();
-
-    {
-        TestJs data;
-
-        Poco::SharedPtr<JSONStructParser::StructParser> sparser =
-            new JSONStructParser::StructParser(
-                std::make_unique<
-                    JSONStructParser::TemplateStructFiller<TestJs>>(data));
-
-        Poco::JSON::Parser parser(sparser);
-        parser.parse(R"json({
-            "anotherval" : 0,
-            "val" : "AAAAA TESTE",
-            "dataarr": [
-                "a",
-                "b",
-                "c",
-                "d"
-            ],
-            "intvalue": 10,
-            "userdata" : {
-                "name" : "Fulano",
-                "lastname" : "De Tal"
-            },
-            "otherUsers" : [
-                {
-                    "name" : "Fulano",
-                    "lastname" : "De Tal 2"
-                },
-                {
-                    "name" : "Fulano",
-                    "lastname" : "De Tal 3"
-                },
-                {
-                    "name" : "Fulano",
-                    "lastname" : "De Tal 4"
-                },
-                {
-                    "name" : "Fulano",
-                    "lastname" : "De Tal 5"
-                }
-            ],
-            "algumacoisa": true
-        })json");
-
-        std::cout << "data.anotherval " << data.anotherval << std::endl;
-        std::cout << "data.val " << data.val << std::endl;
-        std::cout << "data.intvalue " << data.intvalue << std::endl;
-        std::cout << "data.userdata.name " << data.userdata.name << std::endl;
-        std::cout << "data.userdata.lastname " << data.userdata.lastname
-                  << std::endl;
-
-        for (const auto &d : data.dataarr) {
-            std::cout << " dataarr val " << d << std::endl;
-        }
-        for (const auto &d : data.otherUsers) {
-            std::cout << "d.name " << d.name << std::endl;
-            std::cout << "d.lastname " << d.lastname << std::endl;
-        }
-
-        std::cout << "data.algumacoisa " << data.algumacoisa << std::endl;
-    }
 
     SSLUtils::initClient();
 
